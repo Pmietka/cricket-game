@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>11-0 — The All-Time Cricket XI Challenge</title>
+  <meta name="description" content="Spin the wheel, draft your all-time cricket XI, and see if it can win the World Cup undefeated. 11 matches. Zero defeats. Kya aapki XI 11-0 jaa sakti hai?" />
+  <meta property="og:title" content="11-0 — The All-Time Cricket XI Challenge" />
+  <meta property="og:description" content="Draft your all-time XI and try to win the World Cup unbeaten. My XI went 9-2... can yours go 11-0?" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏏</text></svg>" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- HOME -->
+  <section id="screen-home" class="screen active">
+    <div class="tricolour"></div>
+    <header class="hero">
+      <h1 class="logo">11-0</h1>
+      <p class="tagline">The All-Time Cricket XI Challenge</p>
+      <p class="subtag">Spin. Draft your XI across eras. Win the World Cup <em>unbeaten</em>.</p>
+      <p class="subtag hindi">Kya aapki XI 11-0 jaa sakti hai? 🇮🇳</p>
+    </header>
+
+    <div class="mode-buttons">
+      <button id="btn-classic" class="mode-btn">
+        <span class="mb-title">🏏 Classic</span>
+        <span class="mb-desc">Stats visible. Draft with full scouting reports.</span>
+      </button>
+      <button id="btn-criciq" class="mode-btn">
+        <span class="mb-title">🧠 CricIQ</span>
+        <span class="mb-desc">No stats, no ratings. Pure cricket knowledge.</span>
+      </button>
+      <button id="btn-daily" class="mode-btn mb-daily">
+        <span class="mb-title">📅 Daily Challenge</span>
+        <span class="mb-desc">Same spins for everyone today (<span id="daily-date"></span>). Compare with your group.</span>
+      </button>
+    </div>
+
+    <div class="how-to">
+      <h2>How it works</h2>
+      <ol>
+        <li>11 spins — each locks a <strong>nation + decade</strong> (e.g. India · 1990s).</li>
+        <li>Pick one player per spin to fill your XI: openers, middle order, keeper, all-rounder, spinner, three quicks.</li>
+        <li>Our simulation engine plays a full World Cup: 9 league games, semi, final.</li>
+        <li>Win all 11 and your XI is <strong>immortal</strong>. Lose one... well, you know the feeling.</li>
+      </ol>
+    </div>
+
+    <footer class="foot">Made for cricket fans. Player names used for commentary &amp; fan purposes only.</footer>
+  </section>
+
+  <!-- DRAFT -->
+  <section id="screen-draft" class="screen">
+    <div class="tricolour"></div>
+    <div class="draft-head">
+      <span id="draft-progress" class="draft-progress"></span>
+      <h2 id="draft-slot" class="draft-slot"></h2>
+    </div>
+
+    <div id="spin-box" class="spin-box">
+      <div class="spin-label">Spinning the fate wheel…</div>
+      <div id="spin-reel" class="spin-reel">🏏</div>
+    </div>
+
+    <div id="spin-result" class="spin-result hidden"></div>
+    <div id="player-list" class="player-list hidden"></div>
+  </section>
+
+  <!-- REVIEW -->
+  <section id="screen-review" class="screen">
+    <div class="tricolour"></div>
+    <h2 class="screen-title">Your All-Time XI</h2>
+    <p class="screen-sub">No ratings shown now. The simulation judges silently — just like real selectors.</p>
+    <div id="review-list" class="review-list"></div>
+    <button id="btn-simulate" class="big-btn">🏆 SIMULATE WORLD CUP</button>
+  </section>
+
+  <!-- SIMULATION -->
+  <section id="screen-sim" class="screen">
+    <div class="tricolour"></div>
+    <h2 class="screen-title">World Cup Campaign</h2>
+    <p class="screen-sub">9 league matches → semi-final → final. One loss and 11-0 is gone.</p>
+    <div id="sim-feed" class="sim-feed"></div>
+    <div id="sim-done" class="hidden"></div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="screen-result" class="screen">
+    <div class="tricolour"></div>
+    <div id="result-verdict" class="verdict"></div>
+    <div id="result-grid" class="result-grid"></div>
+    <div id="result-record" class="result-record"></div>
+
+    <div class="share-row">
+      <button id="btn-whatsapp" class="share-btn wa">💬 Share on WhatsApp</button>
+      <button id="btn-copy" class="share-btn">📋 Copy Result</button>
+      <button id="btn-poster" class="share-btn">🖼️ Download Team Poster</button>
+      <button id="btn-again" class="share-btn again">🔁 Draft Again</button>
+    </div>
+
+    <h3 class="screen-title small">The XI</h3>
+    <div id="result-xi" class="review-list"></div>
+  </section>
+
+  <script src="js/players.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
