@@ -25,25 +25,25 @@
     <div class="mode-buttons">
       <button id="btn-classic" class="mode-btn">
         <span class="mb-title">🏏 Classic</span>
-        <span class="mb-desc">Stats visible. Draft with full scouting reports.</span>
+        <span class="mb-desc">Scouting reports visible — draft on the facts.</span>
       </button>
       <button id="btn-criciq" class="mode-btn">
         <span class="mb-title">🧠 CricIQ</span>
-        <span class="mb-desc">No stats, no ratings. Pure cricket knowledge.</span>
+        <span class="mb-desc">Everything hidden. Draft from memory — prove your cricket knowledge.</span>
       </button>
       <button id="btn-daily" class="mode-btn mb-daily">
         <span class="mb-title">📅 Daily Challenge</span>
-        <span class="mb-desc">Same spins for everyone today (<span id="daily-date"></span>). Compare with your group.</span>
+        <span class="mb-desc">Everyone gets the same spins today (<span id="daily-date"></span>). One attempt per day — make it count.</span>
       </button>
     </div>
 
     <div class="how-to">
       <h2>How it works</h2>
       <ol>
-        <li>11 spins — each locks a <strong>nation + decade</strong> (e.g. India · 1990s).</li>
-        <li>Pick one player per spin to fill your XI: openers, middle order, keeper, all-rounder, spinner, three quicks.</li>
-        <li>Our simulation engine plays a full World Cup: 9 league games, semi, final.</li>
-        <li>Win all 11 and your XI is <strong>immortal</strong>. Lose one... well, you know the feeling.</li>
+        <li>Each spin locks a random <strong>nation + decade</strong> (e.g. India · 1990s).</li>
+        <li>Pick one player from that side, then <strong>place them</strong> at a position they actually play — openers, middle order, keeper, all-rounder, spinner, three quicks.</li>
+        <li>Bad spin? You get <strong>one nation skip and one era skip</strong> per draft. Spend them wisely.</li>
+        <li>The engine simulates a full World Cup: 9 league games, semi, final. Win all 11 and your XI is <strong>immortal</strong>.</li>
       </ol>
     </div>
 
@@ -55,7 +55,7 @@
     <div class="tricolour"></div>
     <div class="draft-head">
       <span id="draft-progress" class="draft-progress"></span>
-      <h2 id="draft-slot" class="draft-slot"></h2>
+      <div id="xi-tracker" class="xi-tracker"></div>
     </div>
 
     <div id="spin-box" class="spin-box">
@@ -64,14 +64,28 @@
     </div>
 
     <div id="spin-result" class="spin-result hidden"></div>
+
+    <div id="skip-row" class="skip-row hidden">
+      <button id="btn-skip-team" class="skip-btn"></button>
+      <button id="btn-skip-era" class="skip-btn"></button>
+    </div>
+
     <div id="player-list" class="player-list hidden"></div>
+
+    <div id="place-overlay" class="overlay hidden">
+      <div class="overlay-card">
+        <h3 id="place-title"></h3>
+        <div id="place-options" class="share-row"></div>
+        <button id="place-cancel" class="share-btn cancel">Cancel</button>
+      </div>
+    </div>
   </section>
 
   <!-- REVIEW -->
   <section id="screen-review" class="screen">
     <div class="tricolour"></div>
     <h2 class="screen-title">Your All-Time XI</h2>
-    <p class="screen-sub">No ratings shown now. The simulation judges silently — just like real selectors.</p>
+    <p class="screen-sub">The simulation judges silently — just like real selectors.</p>
     <div id="review-list" class="review-list"></div>
     <button id="btn-simulate" class="big-btn">🏆 SIMULATE WORLD CUP</button>
   </section>
@@ -82,15 +96,25 @@
     <h2 class="screen-title">World Cup Campaign</h2>
     <p class="screen-sub">9 league matches → semi-final → final. One loss and 11-0 is gone.</p>
     <div id="sim-feed" class="sim-feed"></div>
-    <div id="sim-done" class="hidden"></div>
   </section>
 
   <!-- RESULT -->
   <section id="screen-result" class="screen">
     <div class="tricolour"></div>
     <div id="result-verdict" class="verdict"></div>
+
+    <div class="record-row">
+      <div id="result-record" class="record-big"></div>
+      <div id="result-grade" class="grade-badge"></div>
+    </div>
     <div id="result-grid" class="result-grid"></div>
-    <div id="result-record" class="result-record"></div>
+
+    <div class="insight-rows">
+      <div class="insight"><span class="in-label">⭐ Best pick</span><span id="result-best" class="in-value"></span></div>
+      <div class="insight"><span class="in-label">⚠️ Biggest weakness</span><span id="result-weak" class="in-value"></span></div>
+    </div>
+
+    <p id="daily-note" class="screen-sub hidden">Daily Challenge done for today. New spins at midnight 🌙</p>
 
     <div class="share-row">
       <button id="btn-whatsapp" class="share-btn wa">💬 Share on WhatsApp</button>

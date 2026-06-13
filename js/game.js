@@ -1,51 +1,59 @@
 /* 11-0 — The All-Time Cricket XI Challenge
- * Draft an all-time XI via 11 randomised (nation + decade) spins,
- * then simulate an 11-match World Cup. Win all 11 to go 11-0.
+ * Faithful to the 82-0 format:
+ *  - Each spin locks a random nation + decade (not a position).
+ *  - You pick a player, then PLACE them at a slot they actually play.
+ *  - One nation skip + one era skip per draft.
+ *  - No overall ratings shown anywhere; Classic shows scouting reports only.
+ *  - Result: final record, letter grade, best pick, biggest weakness.
+ *  - Daily Challenge: same spins for everyone, one attempt per day.
  */
 
 (function () {
   "use strict";
 
-  // ---------- Draft slots ----------
+  // ---------- XI slots ----------
   const SLOTS = [
-    { label: "Opener",        role: "opener",     icon: "🏏" },
-    { label: "Opener",        role: "opener",     icon: "🏏" },
-    { label: "No. 3",         role: "batter",     icon: "🎯" },
-    { label: "Middle Order",  role: "batter",     icon: "🎯" },
-    { label: "Middle Order",  role: "batter",     icon: "🎯" },
-    { label: "Wicketkeeper",  role: "keeper",     icon: "🧤" },
-    { label: "All-Rounder",   role: "allrounder", icon: "⚡" },
-    { label: "Spinner",       role: "spinner",    icon: "🌀" },
-    { label: "Fast Bowler",   role: "pacer",      icon: "🔥" },
-    { label: "Fast Bowler",   role: "pacer",      icon: "🔥" },
-    { label: "Fast Bowler",   role: "pacer",      icon: "🔥" },
+    { label: "Opener",       short: "OPN", role: "opener" },
+    { label: "Opener",       short: "OPN", role: "opener" },
+    { label: "No. 3",        short: "NO3", role: "batter" },
+    { label: "Middle Order", short: "MID", role: "batter" },
+    { label: "Middle Order", short: "MID", role: "batter" },
+    { label: "Wicketkeeper", short: "WK",  role: "keeper" },
+    { label: "All-Rounder",  short: "AR",  role: "allrounder" },
+    { label: "Spinner",      short: "SPN", role: "spinner" },
+    { label: "Fast Bowler",  short: "FB",  role: "pacer" },
+    { label: "Fast Bowler",  short: "FB",  role: "pacer" },
+    { label: "Fast Bowler",  short: "FB",  role: "pacer" },
   ];
+
+  const ROLE_LABELS = {
+    opener: "Opener", batter: "Batter", keeper: "Keeper",
+    allrounder: "All-Rounder", spinner: "Spinner", pacer: "Fast Bowler",
+  };
 
   // ---------- World Cup fixtures (9 league + semi + final) ----------
   const FIXTURES = [
-    { stage: "League 1", name: "Sri Lanka '96",     strength: 88, blurb: "Jayasuriya's pinch-hitting pirates" },
-    { stage: "League 2", name: "Pakistan '92",      strength: 89, blurb: "Imran's cornered tigers" },
-    { stage: "League 3", name: "New Zealand '15",   strength: 89, blurb: "McCullum charging in from ball one" },
-    { stage: "League 4", name: "South Africa '99",  strength: 90, blurb: "Donald, Pollock and Klusener's long handle" },
-    { stage: "League 5", name: "England '19",       strength: 90, blurb: "Champions by the barest of all margins" },
-    { stage: "League 6", name: "India '83",         strength: 91, blurb: "Kapil's Devils — giant killers" },
-    { stage: "League 7", name: "India '11",         strength: 93, blurb: "Dhoni finishes off in style" },
-    { stage: "League 8", name: "West Indies '79",   strength: 94, blurb: "Four horsemen and King Viv" },
-    { stage: "League 9", name: "Australia '03",     strength: 95, blurb: "Ponting's unbeaten juggernaut" },
-    { stage: "Semi-Final", name: "Australia '07",   strength: 95, blurb: "Three World Cups in a row for a reason" },
-    { stage: "FINAL",    name: "All-Time World XI", strength: 97, blurb: "Every legend you didn't pick" },
+    { stage: "League 1", name: "Sri Lanka '96",     strength: 88 },
+    { stage: "League 2", name: "Pakistan '92",      strength: 89 },
+    { stage: "League 3", name: "New Zealand '15",   strength: 89 },
+    { stage: "League 4", name: "South Africa '99",  strength: 90 },
+    { stage: "League 5", name: "England '19",       strength: 90 },
+    { stage: "League 6", name: "India '83",         strength: 91 },
+    { stage: "League 7", name: "India '11",         strength: 93 },
+    { stage: "League 8", name: "West Indies '79",   strength: 94 },
+    { stage: "League 9", name: "Australia '03",     strength: 95 },
+    { stage: "Semi-Final", name: "Australia '07",   strength: 95 },
+    { stage: "FINAL",    name: "All-Time World XI", strength: 97 },
   ];
 
-  const QUALIFY_WINS = 6; // league wins needed to reach the semi-final
+  const QUALIFY_WINS = 6;
 
-  // ---------- Commentary ----------
   const WIN_LINES = [
     "{p} ne kya khela bhai! Crowd on its feet.",
     "{p} takes it home with overs to spare. Easy peasy.",
     "DLS not needed — {p} finished it in style.",
     "Stadium erupts! {p} stands tall when it matters.",
     "{p} ka din tha aaj. Clinical from start to finish.",
-    "They came, they saw, {p} conquered.",
     "A masterclass from {p}. Commentators out of superlatives.",
     "{p} drags your XI over the line. Heart attack delayed.",
   ];
@@ -56,15 +64,23 @@
     "Chased 290, fell 9 short. {p} ran out of partners.",
     "Top order blown away with the new ball. Never recovered.",
     "Spin choke in the middle overs. 40 dot balls. Game gone.",
-    "Rain, DLS, confusion — and a five-run defeat. Cruel game.",
     "{p} fought alone. Nobody stayed with them. Painful.",
   ];
 
+  const WEAKNESS_LINES = {
+    openers: "Your openers won't survive the new ball.",
+    middle:  "That middle order is a house of cards.",
+    keeper:  "The gloves are leaking byes — and runs.",
+    allrounder: "No balance. Your all-rounder is a passenger.",
+    spin:    "The spin department turns nothing but yarns.",
+    pace:    "Your pace attack has no teeth.",
+  };
+
   // ---------- State ----------
-  let mode = "classic";        // classic | criciq | daily
-  let slotIndex = 0;
-  let picks = [];              // { slot, player }
-  let currentCombo = null;     // { team, decade }
+  let mode = "classic";            // classic | criciq | daily
+  let picksBySlot = [];            // length 11, player or null
+  let currentCombo = null;         // { team, decade }
+  let skips = { team: 1, era: 1 };
   let rng = Math.random;
   let simResult = null;
   let spinTimer = null;
@@ -73,7 +89,6 @@
   const $ = (id) => document.getElementById(id);
   const pick = (arr, r) => arr[Math.floor((r || rng)() * arr.length)];
 
-  // Deterministic RNG for Daily mode (mulberry32).
   function mulberry32(seed) {
     return function () {
       seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
@@ -87,32 +102,47 @@
     return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
   }
   function dailyLabel() {
-    const d = new Date();
-    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    return new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
   }
+  const DAILY_KEY = () => "eleven0-daily-" + dailySeed();
 
+  function picks() {
+    return picksBySlot
+      .map((player, i) => (player ? { slot: SLOTS[i], player } : null))
+      .filter(Boolean);
+  }
   function pickedNames() {
-    return new Set(picks.map((p) => p.player.name));
+    return new Set(picks().map((p) => p.player.name));
+  }
+  function filledCount() {
+    return picksBySlot.filter(Boolean).length;
+  }
+  function openSlotIndices() {
+    return SLOTS.map((_, i) => i).filter((i) => !picksBySlot[i]);
+  }
+  function openRoles() {
+    return new Set(openSlotIndices().map((i) => SLOTS[i].role));
+  }
+  function fitsOpenSlot(player) {
+    const roles = openRoles();
+    return player.roles.some((r) => roles.has(r));
   }
 
-  function candidates(role, team, decade) {
+  // Players from a combo who can fill at least one open slot.
+  function candidates(team, decade) {
     const taken = pickedNames();
     return PLAYERS.filter(
-      (p) =>
-        p.team === team &&
-        p.decades.includes(decade) &&
-        p.roles.includes(role) &&
-        !taken.has(p.name)
-    );
+      (p) => p.team === team && p.decades.includes(decade) && !taken.has(p.name) && fitsOpenSlot(p)
+    ).sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  // All (team, decade) combos with at least one available player for the role.
-  // India combos are weighted heavier — this is a game for Indian fans, after all.
-  function validCombos(role) {
+  // All (team, decade) combos with at least one pickable player.
+  function validCombos(filter) {
     const taken = pickedNames();
+    const roles = openRoles();
     const map = new Map();
     for (const p of PLAYERS) {
-      if (!p.roles.includes(role) || taken.has(p.name)) continue;
+      if (taken.has(p.name) || !p.roles.some((r) => roles.has(r))) continue;
       for (const dec of p.decades) {
         const key = p.team + "|" + dec;
         map.set(key, (map.get(key) || 0) + 1);
@@ -121,6 +151,7 @@
     const combos = [];
     for (const [key, count] of map) {
       const [team, decade] = key.split("|");
+      if (filter && !filter(team, decade)) continue;
       const weight = (count >= 2 ? 2 : 1) * (team === "IND" ? 2 : 1);
       for (let i = 0; i < weight; i++) combos.push({ team, decade });
     }
@@ -136,28 +167,58 @@
 
   // ---------- Home ----------
   function startGame(selectedMode) {
+    if (selectedMode === "daily") {
+      const stored = localStorage.getItem(DAILY_KEY());
+      if (stored) {
+        restoreDaily(JSON.parse(stored));
+        return;
+      }
+    }
     mode = selectedMode;
-    slotIndex = 0;
-    picks = [];
+    picksBySlot = new Array(SLOTS.length).fill(null);
+    skips = { team: 1, era: 1 };
     simResult = null;
     rng = mode === "daily" ? mulberry32(dailySeed()) : Math.random;
     show("screen-draft");
+    renderTracker();
     nextSpin();
   }
 
   // ---------- Draft / spin ----------
-  function nextSpin() {
-    const slot = SLOTS[slotIndex];
-    $("draft-progress").textContent = `Pick ${slotIndex + 1} of 11`;
-    $("draft-slot").textContent = `${slot.icon} ${slot.label}`;
+  function renderTracker() {
+    const tr = $("xi-tracker");
+    tr.innerHTML = "";
+    SLOTS.forEach((slot, i) => {
+      const chip = document.createElement("span");
+      const player = picksBySlot[i];
+      chip.className = "xi-chip" + (player ? " filled" : "");
+      chip.textContent = player ? player.name.split(" ").pop() : slot.short;
+      chip.title = slot.label;
+      tr.appendChild(chip);
+    });
+  }
+
+  function renderSkips() {
+    $("btn-skip-team").textContent = `↻ Skip Nation (${skips.team})`;
+    $("btn-skip-era").textContent = `↻ Skip Era (${skips.era})`;
+    $("btn-skip-team").disabled = skips.team < 1;
+    $("btn-skip-era").disabled = skips.era < 1;
+  }
+
+  function nextSpin(filter) {
+    if (filledCount() === SLOTS.length) {
+      showReview();
+      return;
+    }
+    $("draft-progress").textContent = `Pick ${filledCount() + 1} of 11`;
     $("player-list").innerHTML = "";
     $("player-list").classList.add("hidden");
+    $("skip-row").classList.add("hidden");
     $("spin-box").classList.remove("hidden");
     $("spin-result").classList.add("hidden");
 
-    // Decide the combo up front (daily mode must be deterministic),
-    // then run a purely cosmetic slot-machine animation.
-    const combos = validCombos(slot.role);
+    let combos = validCombos(filter);
+    if (!combos.length) combos = validCombos(); // skip filter found nothing — full reroll
     currentCombo = pick(combos);
 
     const reel = $("spin-reel");
@@ -177,77 +238,136 @@
 
   function revealCombo() {
     const { team, decade } = currentCombo;
-    const slot = SLOTS[slotIndex];
     $("spin-box").classList.add("hidden");
     $("spin-result").classList.remove("hidden");
     $("spin-result").innerHTML =
       `<span class="combo-flag">${TEAMS[team].flag}</span>` +
       `<span class="combo-text">${TEAMS[team].name} · ${decade}</span>` +
-      `<span class="combo-sub">Pick your ${slot.label.toLowerCase()}</span>`;
+      `<span class="combo-sub">Pick one player, then place them in your XI</span>`;
+    $("skip-row").classList.remove("hidden");
+    renderSkips();
 
     const list = $("player-list");
     list.innerHTML = "";
     list.classList.remove("hidden");
 
-    const pool = candidates(slot.role, team, decade);
-    // Classic & Daily show credentials and rating; CricIQ tests pure memory.
-    const showStats = mode !== "criciq";
-    const sorted = showStats ? [...pool].sort((a, b) => b.rating - a.rating) : pool;
-
-    for (const p of sorted) {
+    for (const p of candidates(team, decade)) {
       const card = document.createElement("button");
       card.className = "player-card";
+      const roleTags = p.roles.map((r) => `<span class="pc-role">${ROLE_LABELS[r]}</span>`).join("");
       card.innerHTML =
         `<span class="pc-name">${p.name}</span>` +
-        (showStats
-          ? `<span class="pc-cred">${p.cred}</span><span class="pc-ovr">OVR ${p.rating}</span>`
-          : `<span class="pc-cred pc-mystery">Stats hidden — trust your cricket gyaan 🧠</span>`);
+        `<span class="pc-roles">${roleTags}</span>` +
+        (mode !== "criciq"
+          ? `<span class="pc-cred">${p.cred}</span>`
+          : "");
       card.addEventListener("click", () => choosePlayer(p));
       list.appendChild(card);
     }
   }
 
+  function skipTeam() {
+    if (skips.team < 1) return;
+    skips.team--;
+    const { team, decade } = currentCombo;
+    nextSpin((t, d) => d === decade && t !== team);
+  }
+
+  function skipEra() {
+    if (skips.era < 1) return;
+    skips.era--;
+    const { team, decade } = currentCombo;
+    nextSpin((t, d) => t === team && d !== decade);
+  }
+
+  // ---------- Placement ----------
   function choosePlayer(player) {
-    picks.push({ slot: SLOTS[slotIndex], player });
-    slotIndex++;
-    if (slotIndex < SLOTS.length) {
-      nextSpin();
-    } else {
-      showReview();
+    const roles = openRoles();
+    // One open slot index per distinct label the player can fill.
+    const options = [];
+    const seenLabels = new Set();
+    for (const i of openSlotIndices()) {
+      const slot = SLOTS[i];
+      if (player.roles.includes(slot.role) && roles.has(slot.role) && !seenLabels.has(slot.label)) {
+        seenLabels.add(slot.label);
+        options.push(i);
+      }
     }
+    if (options.length === 1) {
+      placePlayer(player, options[0]);
+      return;
+    }
+    const ov = $("place-overlay");
+    $("place-title").textContent = `Place ${player.name} at:`;
+    const btns = $("place-options");
+    btns.innerHTML = "";
+    for (const i of options) {
+      const b = document.createElement("button");
+      b.className = "share-btn";
+      b.textContent = SLOTS[i].label;
+      b.addEventListener("click", () => {
+        ov.classList.add("hidden");
+        placePlayer(player, i);
+      });
+      btns.appendChild(b);
+    }
+    ov.classList.remove("hidden");
+  }
+
+  function placePlayer(player, slotIdx) {
+    picksBySlot[slotIdx] = player;
+    renderTracker();
+    nextSpin();
   }
 
   // ---------- Review ----------
-  function showReview() {
-    show("screen-review");
-    const list = $("review-list");
-    list.innerHTML = "";
-    picks.forEach((pk, i) => {
+  function renderXiList(el) {
+    el.innerHTML = "";
+    picks().forEach((pk, i) => {
       const row = document.createElement("div");
       row.className = "review-row";
       row.innerHTML =
         `<span class="rv-num">${i + 1}</span>` +
         `<span class="rv-name">${pk.player.name}</span>` +
         `<span class="rv-meta">${TEAMS[pk.player.team].flag} ${pk.slot.label}</span>`;
-      list.appendChild(row);
+      el.appendChild(row);
     });
   }
 
+  function showReview() {
+    show("screen-review");
+    renderXiList($("review-list"));
+  }
+
   // ---------- Simulation ----------
+  function unitAverages() {
+    const r = (idx) => idx.map((i) => picksBySlot[i].rating);
+    const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+    return {
+      openers: avg(r([0, 1])),
+      middle: avg(r([2, 3, 4])),
+      keeper: avg(r([5])),
+      allrounder: avg(r([6])),
+      spin: avg(r([7])),
+      pace: avg(r([8, 9, 10])),
+    };
+  }
+
   function teamStrength() {
-    // Weighted average of ratings, plus small balance bonuses.
     let total = 0, weight = 0;
-    for (const pk of picks) {
+    picks().forEach((pk) => {
       const w = pk.slot.role === "allrounder" ? 1.15 : pk.slot.role === "keeper" ? 0.95 : 1;
       total += pk.player.rating * w;
       weight += w;
-    }
+    });
     let s = total / weight;
-    const ratings = (role) => picks.filter((p) => p.slot.role === role).map((p) => p.player.rating);
-    const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
-    if (avg(ratings("pacer")) >= 90) s += 1.2;       // elite pace attack
-    if (avg(ratings("opener")) >= 90) s += 0.8;      // dominant new-ball batting
-    if (Math.min(...picks.map((p) => p.player.rating)) >= 85) s += 1.0; // no weak link
+    const u = unitAverages();
+    if (u.pace >= 90) s += 1.2;
+    if (u.openers >= 90) s += 0.8;
+    if (Math.min(...picks().map((p) => p.player.rating)) >= 85) s += 1.0;
+    // Category gates: a genuinely weak unit drags the whole campaign.
+    const gates = Object.values(u).filter((v) => v < 80).length;
+    s -= Math.min(gates, 2) * 1.0;
     return s;
   }
 
@@ -256,9 +376,24 @@
   }
 
   function starName() {
-    const sorted = [...picks].sort((a, b) => b.player.rating - a.player.rating);
-    const top3 = sorted.slice(0, 3);
-    return pick(top3, Math.random).player.name.split(" ").pop();
+    const sorted = picks().sort((a, b) => b.player.rating - a.player.rating);
+    return pick(sorted.slice(0, 3), Math.random).player.name.split(" ").pop();
+  }
+
+  function grade(wins) {
+    return wins === 11 ? "S" : wins === 10 ? "A+" : wins === 9 ? "A" :
+           wins === 8 ? "B+" : wins === 7 ? "B" : wins === 6 ? "C+" :
+           wins === 5 ? "C" : wins === 4 ? "D" : "F";
+  }
+
+  function bestPick() {
+    return picks().reduce((a, b) => (b.player.rating > a.player.rating ? b : a)).player.name;
+  }
+
+  function biggestWeakness() {
+    const u = unitAverages();
+    const worst = Object.entries(u).sort((a, b) => a[1] - b[1])[0][0];
+    return WEAKNESS_LINES[worst];
   }
 
   function runSimulation() {
@@ -268,9 +403,7 @@
 
     for (let i = 0; i < FIXTURES.length; i++) {
       const fx = FIXTURES[i];
-      const isKnockout = i >= 9;
-
-      if (isKnockout) {
+      if (i >= 9) {
         const leagueWins = matches.filter((m) => m.played && m.won).length;
         if (i === 9) {
           let qualified = leagueWins >= QUALIFY_WINS;
@@ -282,34 +415,38 @@
           continue;
         }
       }
-
       const won = Math.random() < winProb(strength, fx.strength);
       const line = pick(won ? WIN_LINES : LOSS_LINES, Math.random).replace("{p}", starName());
       matches.push({ fx, played: true, won, line });
       if (won) wins++; else losses++;
     }
 
-    const finalMatch = matches[10];
-    const semiMatch = matches[9];
+    const finalMatch = matches[10], semiMatch = matches[9];
     let verdict, verdictClass;
     if (wins === 11) {
       verdict = "🏆 11-0. IMMORTAL. Undefeated World Champions. Frame this XI.";
       verdictClass = "v-gold";
     } else if (finalMatch.played && finalMatch.won) {
-      verdict = `🏆 World Champions at ${wins}-${losses}! Not perfect — but the trophy doesn't care.`;
+      verdict = "🏆 World Champions! Not perfect — but the trophy doesn't care.";
       verdictClass = "v-gold";
     } else if (finalMatch.played && !finalMatch.won) {
-      verdict = `💔 Lost the final. ${wins}-${losses}. We know exactly how this feels.`;
+      verdict = "💔 Lost the final. We know exactly how this feels.";
       verdictClass = "v-heartbreak";
     } else if (semiMatch.played && !semiMatch.won) {
-      verdict = `😤 Semi-final exit at ${wins}-${losses}. So close, so far.`;
+      verdict = "😤 Semi-final exit. So close, so far.";
       verdictClass = "v-heartbreak";
     } else {
-      verdict = `📉 Group-stage exit at ${wins}-${losses}. Selectors (you) sacked.`;
+      verdict = "📉 Group-stage exit. Selectors (you) sacked.";
       verdictClass = "v-flop";
     }
 
-    return { matches, wins, losses, verdict, verdictClass, perfect: wins === 11 };
+    return {
+      matches, wins, losses, verdict, verdictClass,
+      perfect: wins === 11,
+      grade: grade(wins),
+      best: bestPick(),
+      weak: biggestWeakness(),
+    };
   }
 
   function showSimulation() {
@@ -317,7 +454,6 @@
     simResult = runSimulation();
     const feed = $("sim-feed");
     feed.innerHTML = "";
-    $("sim-done").classList.add("hidden");
 
     simResult.matches.forEach((m, i) => {
       setTimeout(() => {
@@ -338,49 +474,65 @@
         }
         feed.appendChild(row);
         row.scrollIntoView({ behavior: "smooth", block: "end" });
-        if (i === simResult.matches.length - 1) {
-          setTimeout(showResult, 900);
-        }
+        if (i === simResult.matches.length - 1) setTimeout(showResult, 900);
       }, 750 * (i + 1));
     });
   }
 
   // ---------- Result + sharing ----------
   function emojiGrid() {
-    return simResult.matches
-      .map((m) => (!m.played ? "⬜" : m.won ? "🟢" : "🔴"))
-      .join("");
+    return simResult.matches.map((m) => (!m.played ? "⬜" : m.won ? "🟢" : "🔴")).join("");
   }
 
   function shareText() {
     const tag = mode === "daily" ? `Daily Challenge ${dailyLabel()}` :
-                mode === "criciq" ? "CricIQ mode (no stats!)" : "Classic mode";
+                mode === "criciq" ? "CricIQ mode (no scouting reports!)" : "Classic mode";
     const head = simResult.perfect
       ? `I went 11-0 in the All-Time Cricket XI Challenge! 🏆🇮🇳`
-      : `My all-time XI went ${simResult.wins}-${simResult.losses} in the 11-0 Challenge.`;
-    return `${head}\n${emojiGrid()}\n${tag} — can your XI go 11-0?\nPlay: ${location.href.split("#")[0]}`;
+      : `My all-time XI went ${simResult.wins}-${simResult.losses} (Grade ${simResult.grade}) in the 11-0 Challenge.`;
+    return `${head}\n${simResult.grid || emojiGrid()}\n${tag} — can your XI go 11-0?\nPlay: ${location.href.split("#")[0]}`;
   }
 
   function showResult() {
     show("screen-result");
-    $("sim-done").classList.add("hidden");
     const v = $("result-verdict");
     v.textContent = simResult.verdict;
     v.className = "verdict " + simResult.verdictClass;
-    $("result-grid").textContent = emojiGrid();
-    $("result-record").textContent = `Final record: ${simResult.wins}-${simResult.losses}`;
 
-    const xi = $("result-xi");
-    xi.innerHTML = "";
-    picks.forEach((pk, i) => {
-      const row = document.createElement("div");
-      row.className = "review-row";
-      row.innerHTML =
-        `<span class="rv-num">${i + 1}</span>` +
-        `<span class="rv-name">${pk.player.name}</span>` +
-        `<span class="rv-meta">${TEAMS[pk.player.team].flag} ${pk.slot.label}</span>`;
-      xi.appendChild(row);
-    });
+    $("result-record").textContent = `${simResult.wins}-${simResult.losses}`;
+    $("result-grade").textContent = simResult.grade;
+    $("result-grade").className = "grade-badge g-" + simResult.grade.replace("+", "p");
+    $("result-grid").textContent = simResult.grid || emojiGrid();
+    $("result-best").textContent = simResult.best;
+    $("result-weak").textContent = simResult.weak;
+    $("daily-note").classList.toggle("hidden", mode !== "daily");
+
+    renderXiList($("result-xi"));
+
+    if (mode === "daily" && !localStorage.getItem(DAILY_KEY())) {
+      localStorage.setItem(DAILY_KEY(), JSON.stringify({
+        picks: picks().map((pk) => ({ n: pk.player.name, t: pk.player.team, s: pk.slot.label })),
+        wins: simResult.wins, losses: simResult.losses,
+        verdict: simResult.verdict, verdictClass: simResult.verdictClass,
+        grid: emojiGrid(), grade: simResult.grade,
+        best: simResult.best, weak: simResult.weak, perfect: simResult.perfect,
+      }));
+    }
+  }
+
+  function restoreDaily(saved) {
+    mode = "daily";
+    const byName = new Map(PLAYERS.map((p) => [p.name, p]));
+    picksBySlot = new Array(SLOTS.length).fill(null);
+    saved.picks.forEach((sp, i) => { picksBySlot[i] = byName.get(sp.n) || { name: sp.n, team: sp.t, rating: 80, roles: [] }; });
+    // Re-map saved slot labels so the XI list shows what was actually drafted.
+    simResult = {
+      matches: [], wins: saved.wins, losses: saved.losses,
+      verdict: saved.verdict, verdictClass: saved.verdictClass,
+      grid: saved.grid, grade: saved.grade, best: saved.best,
+      weak: saved.weak, perfect: saved.perfect,
+    };
+    showResult();
   }
 
   function shareWhatsApp() {
@@ -410,7 +562,6 @@
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    // Tricolour strip
     ctx.fillStyle = "#ff9933"; ctx.fillRect(0, 0, W, 14);
     ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 14, W, 6);
     ctx.fillStyle = "#138808"; ctx.fillRect(0, 20, W, 14);
@@ -425,11 +576,13 @@
 
     ctx.font = "bold 38px Arial, sans-serif";
     ctx.fillStyle = simResult && simResult.perfect ? "#ffd700" : "#9fb3cc";
-    const rec = simResult ? `Record: ${simResult.wins}-${simResult.losses}` + (simResult.perfect ? "  🏆 PERFECT" : "") : "";
+    const rec = simResult
+      ? `${simResult.wins}-${simResult.losses} · Grade ${simResult.grade}` + (simResult.perfect ? "  🏆 PERFECT" : "")
+      : "";
     ctx.fillText(rec, W / 2, 300);
 
     ctx.textAlign = "left";
-    picks.forEach((pk, i) => {
+    picks().forEach((pk, i) => {
       const y = 390 + i * 82;
       ctx.fillStyle = "rgba(255,255,255,0.06)";
       ctx.fillRect(70, y - 50, W - 140, 66);
@@ -463,6 +616,9 @@
     $("btn-criciq").addEventListener("click", () => startGame("criciq"));
     $("btn-daily").addEventListener("click", () => startGame("daily"));
     $("daily-date").textContent = dailyLabel();
+    $("btn-skip-team").addEventListener("click", skipTeam);
+    $("btn-skip-era").addEventListener("click", skipEra);
+    $("place-cancel").addEventListener("click", () => $("place-overlay").classList.add("hidden"));
     $("btn-simulate").addEventListener("click", showSimulation);
     $("btn-whatsapp").addEventListener("click", shareWhatsApp);
     $("btn-copy").addEventListener("click", copyResult);

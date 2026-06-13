@@ -90,7 +90,44 @@ body {
   text-transform: uppercase;
   color: var(--muted);
 }
-.draft-slot { font-size: 30px; margin-top: 6px; }
+
+.xi-tracker {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+.xi-chip {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+.xi-chip.filled {
+  color: #1a1a1a;
+  background: var(--saffron);
+  border: 1px solid var(--saffron);
+}
+
+.skip-row { display: flex; gap: 10px; margin-top: 12px; }
+.skip-btn {
+  flex: 1;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+}
+.skip-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.skip-btn:not(:disabled):hover { border-color: var(--saffron); color: var(--text); }
 
 .spin-box {
   background: var(--card);
@@ -130,18 +167,41 @@ body {
 .player-card:hover { border-color: var(--saffron); }
 .player-card:active { transform: scale(0.98); }
 .pc-name { font-size: 17px; font-weight: 800; display: block; }
-.pc-cred { font-size: 12.5px; color: var(--muted); display: block; margin-top: 4px; padding-right: 64px; }
-.pc-mystery { font-style: italic; }
-.pc-ovr {
-  position: absolute;
-  top: 14px; right: 14px;
-  background: var(--saffron);
-  color: #1a1a1a;
-  font-size: 12px;
+.pc-roles { display: flex; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+.pc-role {
+  font-size: 10px;
   font-weight: 800;
-  border-radius: 8px;
-  padding: 4px 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--saffron);
+  background: rgba(255, 153, 51, 0.14);
+  border-radius: 6px;
+  padding: 3px 7px;
 }
+.pc-cred { font-size: 12.5px; color: var(--muted); display: block; margin-top: 6px; }
+
+/* Placement overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 10, 20, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 24px;
+}
+.overlay-card {
+  background: var(--bg);
+  border: 1px solid rgba(255, 153, 51, 0.4);
+  border-radius: 16px;
+  padding: 22px;
+  width: 100%;
+  max-width: 380px;
+}
+.overlay-card h3 { font-size: 17px; margin-bottom: 14px; text-align: center; }
+.overlay-card .share-row { margin-bottom: 10px; }
+.share-btn.cancel { width: 100%; color: var(--muted); border-style: dashed; }
 
 /* ---------- Review / result XI ---------- */
 .screen-title { text-align: center; font-size: 26px; padding-top: 4px; }
@@ -222,8 +282,48 @@ body {
 .v-heartbreak { color: var(--loss); }
 .v-flop { color: var(--muted); }
 
-.result-grid { text-align: center; font-size: 26px; letter-spacing: 3px; padding: 10px 0 4px; }
-.result-record { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+.record-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding-top: 8px;
+}
+.record-big {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+.grade-badge {
+  font-size: 28px;
+  font-weight: 900;
+  border-radius: 14px;
+  padding: 10px 18px;
+  background: var(--card);
+  border: 2px solid var(--muted);
+  color: var(--muted);
+}
+.grade-badge.g-S { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 24px rgba(255, 215, 0, 0.35); }
+.grade-badge.g-Ap, .grade-badge.g-A { border-color: var(--win); color: var(--win); }
+.grade-badge.g-Bp, .grade-badge.g-B { border-color: var(--saffron); color: var(--saffron); }
+.grade-badge.g-Cp, .grade-badge.g-C { border-color: var(--muted); color: var(--muted); }
+.grade-badge.g-D, .grade-badge.g-F { border-color: var(--loss); color: var(--loss); }
+
+.result-grid { text-align: center; font-size: 26px; letter-spacing: 3px; padding: 10px 0 14px; }
+
+.insight-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.insight {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.in-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); white-space: nowrap; }
+.in-value { font-size: 14px; font-weight: 700; text-align: right; }
 
 .share-row { display: flex; flex-direction: column; gap: 10px; }
 .share-btn {
